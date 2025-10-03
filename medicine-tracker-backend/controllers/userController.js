@@ -2,7 +2,6 @@ const User = require('../models/User');
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
 
-// Helper to generate token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
@@ -46,6 +45,9 @@ exports.loginUser = async (req, res) => {
 // @route   GET /api/users/shops/search?keyword=...
 exports.searchShops = async (req, res) => {
     const keyword = req.query.keyword ? { shopName: { $regex: req.query.keyword, $options: 'i' } } : {};
-    const shops = await Admin.find({ ...keyword }).select('shopName address');
+    
+    // This query now correctly fetches the entire document, including location data.
+    const shops = await Admin.find({ ...keyword });
+    
     res.json(shops);
 };

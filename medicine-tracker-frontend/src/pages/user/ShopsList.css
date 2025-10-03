@@ -1,0 +1,24 @@
+/* src/pages/user/ShopsList.css */
+
+.shops-list-container {
+    height: 75vh;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+
+.map-container {
+    height: 85vh;
+    position: sticky;
+    top: 20px;
+}
+
+.highlighted-card {
+    border: 2px solid var(--primary-color) !important;
+    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.25) !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease-in-out;
+}
+
+.outline_btn {
+    border: 1px solid #006CA5;
+}

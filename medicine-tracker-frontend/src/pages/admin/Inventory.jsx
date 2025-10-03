@@ -39,6 +39,7 @@ const Inventory = () => {
                     <thead>
                         <tr>
                             <th>NAME</th>
+                            <th>CATEGORY</th>
                             <th>QUANTITY</th>
                             <th>EXPIRY DATE</th>
                             <th>STATUS</th>
@@ -47,12 +48,13 @@ const Inventory = () => {
                     <tbody>
                         {inventory.length === 0 ? (
                             <tr>
-                                <td colSpan="4">No medicines in inventory.</td>
+                                <td colSpan="5">No medicines in inventory.</td>
                             </tr>
                         ) : (
                             inventory.map((med) => (
                                 <tr key={med._id} style={getExpiryStatusStyle(med.expiryDate)}>
                                     <td>{med.name}</td>
+                                    <td>{med.category}</td>
                                     <td>{med.quantity}</td>
                                     <td>{new Date(med.expiryDate).toLocaleDateString()}</td>
                                     <td className="fw-bold">

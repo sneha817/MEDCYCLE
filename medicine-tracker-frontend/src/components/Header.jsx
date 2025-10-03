@@ -1,12 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar, Nav, Container, NavDropdown, Badge } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import io from 'socket.io-client';
 import { logout } from '../app/slices/authSlice';
 import { getShopOrderRequests } from '../app/slices/orderSlice';
 import { HeartPulseFill } from 'react-bootstrap-icons';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -15,27 +18,26 @@ const Header = () => {
   const { userInfo, adminInfo } = useSelector((state) => state.auth);
   const { pendingCount } = useSelector((state) => state.orders);
 
-  const prevPendingCountRef = useRef(pendingCount);
-
-  // This effect starts polling for requests when an admin logs in
+  // This effect manages the real-time socket connection for admin notifications
   useEffect(() => {
     if (adminInfo) {
-      dispatch(getShopOrderRequests()); // Initial fetch
-      const interval = setInterval(() => {
-        dispatch(getShopOrderRequests());
-      }, 10000); // Poll every 10 seconds
+      const socket = io(API_URL);
 
-      return () => clearInterval(interval); // Cleanup when component unmounts or admin logs out
+      // Join a room specific to this admin
+      socket.emit('joinAdminRoom', adminInfo._id);
+
+      // Listen for new request notifications from the server
+      socket.on('newRequestNotification', (data) => {
+        toast.info(data.message);
+        dispatch(getShopOrderRequests()); // Refresh the request list and badge
+      });
+
+      // Cleanup: Disconnect when the component unmounts or admin logs out
+      return () => {
+        socket.disconnect();
+      };
     }
   }, [dispatch, adminInfo]);
-
-  // This effect triggers the toast when the pending request count increases
-  useEffect(() => {
-    if (pendingCount > prevPendingCountRef.current) {
-      toast.info('You have a new medicine request!');
-    }
-    prevPendingCountRef.current = pendingCount;
-  }, [pendingCount]);
 
   const logoutHandler = () => {
     dispatch(logout());

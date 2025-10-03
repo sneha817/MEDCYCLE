@@ -10,6 +10,14 @@ exports.createMedicineRequest = async (req, res) => {
         shop: shopId,
     });
     const createdRequest = await orderRequest.save();
+
+    // After saving, emit a notification to the specific admin's room
+    if (createdRequest) {
+      req.io.to(shopId).emit('newRequestNotification', { 
+        message: `You have a new request for ${medicineName}!` 
+      });
+    }
+
     res.status(201).json(createdRequest);
 };
 
@@ -37,12 +45,12 @@ exports.handleOrderRequest = async (req, res) => {
 // @desc    Get donated medicine history for an admin
 // @route   GET /api/orders/history/donated
 exports.getDonationHistory = async (req, res) => {
-    const orders = await OrderRequest.find({ shop: req.user._id, status: 'Accepted' })
+    const orders = await OrderRequest.find({ shop: req.user._id, status: { $in: ['Accepted', 'Rejected'] } })
         .populate('user', 'email')
         .sort({ actionDate: -1 });
 
     const history = orders.map(order => ({
-        userName: order.user ? order.user.email : order.email, // Fallback to guest email
+        userName: order.user ? order.user.email : order.email,
         amount: order.quantity,
         date: order.actionDate,
         status: order.status,

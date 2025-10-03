@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Table, Button, Modal, Form } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import Message from '../../components/Message';
 import Loader from '../../components/Loader';
 import { getExpiringMedicines } from '../../app/slices/medicineSlice';
@@ -25,7 +26,8 @@ const ShopDetails = () => {
         if (orderSuccess) {
             setShowModal(false);
             dispatch(resetOrderSuccess());
-            alert('Request submitted successfully! Check your history for status updates.');
+            // Replaced alert with toast notification
+            toast.success('Request submitted successfully! Check your history for status updates.');
         }
     }, [dispatch, shopId, orderSuccess]);
 

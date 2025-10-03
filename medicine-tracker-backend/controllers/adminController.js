@@ -1,7 +1,7 @@
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
-// Helper to generate token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
@@ -13,7 +13,28 @@ exports.registerAdmin = async (req, res) => {
     const adminExists = await Admin.findOne({ gstId });
     if (adminExists) return res.status(400).json({ message: 'Admin with this GST ID already exists' });
 
-    const admin = await Admin.create({ shopName, address, gstId, password });
+    let location = {};
+    try {
+        const geocodeUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+        console.log(`[Geocoding] Looking up address: "${address}"`);
+        
+        const { data } = await axios.get(geocodeUrl, {
+            headers: { 'User-Agent': 'MedicineDonationApp/1.0' }
+        });
+
+        if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            location = { lat: parseFloat(lat), lng: parseFloat(lon) };
+            console.log(`[Geocoding] SUCCESS: Found coordinates Lat: ${location.lat}, Lng: ${location.lng}`);
+        } else {
+            console.warn(`[Geocoding] WARNING: Could not find coordinates for address "${address}". Saving shop without location.`);
+        }
+    } catch (error) {
+        console.error('[Geocoding] CRITICAL ERROR:', error.message);
+    }
+
+    const admin = await Admin.create({ shopName, address, gstId, password, location });
+    
     if (admin) {
         res.status(201).json({
             _id: admin._id,
@@ -49,7 +70,25 @@ exports.updateAdminProfile = async (req, res) => {
     const admin = await Admin.findById(req.user._id);
     if (admin) {
         admin.shopName = req.body.shopName || admin.shopName;
-        admin.address = req.body.address || admin.address;
+        if (req.body.address && admin.address !== req.body.address) {
+            admin.address = req.body.address;
+            try {
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(req.body.address)}&format=json&limit=1`;
+                console.log(`[Geocoding] Updating address: "${req.body.address}"`);
+
+                const { data } = await axios.get(geocodeUrl, { headers: { 'User-Agent': 'MedicineDonationApp/1.0' }});
+                
+                if (data && data.length > 0) {
+                    const { lat, lon } = data[0];
+                    admin.location = { lat: parseFloat(lat), lng: parseFloat(lon) };
+                    console.log(`[Geocoding] SUCCESS: Found new coordinates Lat: ${admin.location.lat}, Lng: ${admin.location.lng}`);
+                } else {
+                    console.warn(`[Geocoding] WARNING: Could not find coordinates for updated address. Location not changed.`);
+                }
+            } catch (error) {
+                console.error('[Geocoding] CRITICAL ERROR during update:', error.message);
+            }
+        }
         const updatedAdmin = await admin.save();
         res.json({
             _id: updatedAdmin._id,

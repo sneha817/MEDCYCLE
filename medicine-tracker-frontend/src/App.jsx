@@ -35,32 +35,35 @@ function App() {
         pauseOnHover
       />
       <main className="py-4">
-        <Container>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<UserLogin />} />
-            <Route path="/register" element={<UserRegister />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/register" element={<AdminRegister />} />
+        {/* Added the fade-in animation wrapper here */}
+        <div className="page-fade-in">
+          <Container>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<UserLogin />} />
+              <Route path="/register" element={<UserRegister />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/register" element={<AdminRegister />} />
 
-            {/* Private User Routes */}
-            <Route element={<PrivateRoute role="user" />}>
-              <Route path="/shops" element={<ShopsList />} />
-              <Route path="/shop/:id" element={<ShopDetails />} />
-              <Route path="/my-history" element={<UserOrderHistory />} />
-            </Route>
+              {/* Private User Routes */}
+              <Route element={<PrivateRoute role="user" />}>
+                <Route path="/shops" element={<ShopsList />} />
+                <Route path="/shop/:id" element={<ShopDetails />} />
+                <Route path="/my-history" element={<UserOrderHistory />} />
+              </Route>
 
-            {/* Private Admin Routes */}
-            <Route element={<PrivateRoute role="admin" />}>
-              <Route path="/admin/inventory" element={<Inventory />} />
-              <Route path="/admin/add-medicine" element={<AddMedicine />} />
-              <Route path="/admin/requests" element={<OrderRequests />} />
-              <Route path="/admin/history" element={<DonationHistory />} />
-              <Route path="/admin/settings" element={<Settings />} />
-            </Route>
-          </Routes>
-        </Container>
+              {/* Private Admin Routes */}
+              <Route element={<PrivateRoute role="admin" />}>
+                <Route path="/admin/inventory" element={<Inventory />} />
+                <Route path="/admin/add-medicine" element={<AddMedicine />} />
+                <Route path="/admin/requests" element={<OrderRequests />} />
+                <Route path="/admin/history" element={<DonationHistory />} />
+                <Route path="/admin/settings" element={<Settings />} />
+              </Route>
+            </Routes>
+          </Container>
+        </div>
       </main>
     </>
   );
